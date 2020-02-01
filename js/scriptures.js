@@ -1,4 +1,18 @@
-const Scriptures = (function () {
+/*jslint
+    browser: true
+    long: true */
+/*global console, google, map, XMLHttpRequest */
+/*property
+    Animation, DROP, Marker, animation, books, classKey, clearTimeout, content,
+    exec, forEach, fullName, getAttribute, getElementById, google, gridName,
+    hash, href, id, init, innerHTML, lat, length, lng, log, map, maps,
+    maxBookId, minBookId, numChapters, onHashChanged, onerror, onload, open,
+    parse, position, push, querySelectorAll, response, send, setMap, setTimeout,
+    slice, split, status, title, tocName
+*/
+
+const Scriptures = (function ()
+{
     "use strict";
 
     // CONSTANTS
@@ -17,89 +31,83 @@ const Scriptures = (function () {
 
 
     // PRIVATE METHODS
-    ajax = function(url, successCallback, failureCallback)
+    ajax = function (url, successCallback, failureCallback)
     {
         let request = new XMLHttpRequest();
-        request.open('GET', url, true);
+        request.open("GET", url, true);
 
-        request.onload = function() 
+        request.onload = function ()
         {
-            if (request.status >= 200 && request.status < 400) 
+            if(request.status >= 200 && request.status < 400)
             {
                 // Success!
-                let data = JSON.parse(request.responseText);
+                let data = JSON.parse(request.response);
                 if(typeof successCallback === "function")
                 {
                     successCallback(data);
                 }
-                else
-                {
-                    if(typeof failureCallback === "funciton")
-                    {
-                        failureCallback(request);
-                    }
-                }
-            } 
+            }
             else
             {
-                // We reached our target server, but it returned an error
+                if(typeof failureCallback === "function")
+                {
+                    failureCallback(request);
+                }
             }
         };
 
-        request.onerror = failureCallback; 
-        {
-        // There was a connection error of some sort
-        };
-
+        request.onerror = failureCallback;
         request.send();
-    }
+    };
 
 
-    cacheBooks = function(callback)
+    cacheBooks = function(onInitializedCallback)
     {
-        volumes.forEach(volume => {
+        volumes.forEach(function (volume)
+        {
             let volumeBooks = [];
             let bookId = volume.minBookId;
 
-            while(bookId <= volume.maxBookId)
+            while (bookId <= volume.maxBookId)
             {
                 volumeBooks.push(books[bookId]);
-                bookId ++;
+                bookId += 1;
             }
+
             volume.books = volumeBooks;
         });
-        if(typeof callback === "function")
+        if(typeof onInitializedCallback === "function")
         {
-            callback();
+            onInitializedCallback();
         }
     };
 
-    init = function(callback)
+    init = function (onInitializedCallback)
     {
         let booksLoaded = false;
         let volumesLoaded = false;
 
-        ajax("https://scriptures.byu.edu/mapscrip/model/books.php", data => 
+        ajax("https://scriptures.byu.edu/mapscrip/model/books.php", function (data)
         {
-            books = data
+            books = data;
             booksLoaded = true;
 
             if(volumesLoaded)
             {
-                cacheBooks(callback);
+                cacheBooks(onInitializedCallback);
             }
         });
-        ajax("https://scriptures.byu.edu/mapscrip/model/volumes.php", data => 
+
+        ajax("https://scriptures.byu.edu/mapscrip/model/volumes.php", function (data)
         {
-            volumes = data
+            volumes = data;
             volumesLoaded = true;
 
             if(booksLoaded)
             {
-                cacheBooks(callback);
+                cacheBooks(onInitializedCallback);
             }
         });
-
     };
 
     onHashChanged = function ()
