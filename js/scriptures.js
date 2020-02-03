@@ -11,6 +11,11 @@
     slice, split, status, title, tocName
 */
 
+// TODO: hover on teardrops display name next to it
+// click on link in book takes you to google maps location showlocation() method
+// next previous buttons
+
+
 const Scriptures =(function()
 {
     "use strict";
@@ -40,6 +45,7 @@ const Scriptures =(function()
     // PRIVATE VARIABLES
     let books;
     let gmMarkers = [];
+    let retryDelay = 500;
     let volumes;
 
     // PRIVATE METHOD DECLARATIONS
@@ -74,7 +80,16 @@ const Scriptures =(function()
     // PRIVATE METHODS
     addMarker = function(placename, latitude, longitude)
     {
-        console.log(placename, latitude, longitude);
+        let marker = new google.maps.Marker
+        (
+            {
+                position: {lat: Number(latitude), lng: Number(longitude)},
+                map,
+                title: placename,
+                animation: google.maps.Animation.DROP
+            }
+        );
+        gmMarkers.push(marker);
     };
 
     ajax = function(url, successCallback, failureCallback, skipJsonParse)
@@ -454,6 +469,19 @@ const Scriptures =(function()
 
     setupMarkers = function()
     {
+        if (window.google === undefined)
+        {
+            let retryId= window.setTimeout(setupMarkers, retryDelay);
+
+            retryDelay += retryDelay
+
+            if(retryDelay > MAX_RETRY_DELAY)
+            {
+                window.clearTimeout(retryId);
+            }
+
+            return;
+        }
         if(gmMarkers.length > 0)
         {
             clearMarkers();
