@@ -39,9 +39,11 @@ const Scriptures =(function()
 
     // PRIVATE VARIABLES
     let books;
+    let gmMarkers = [];
     let volumes;
 
     // PRIVATE METHOD DECLARATIONS
+    let addMarker;
     let ajax;
     let bookChapterValid;
     let booksGrid;
@@ -49,6 +51,7 @@ const Scriptures =(function()
     let cacheBooks;
     let chaptersGrid;
     let chaptersGridContent;
+    let clearMarkers;
     let encodedScripturesUrlParameters;
     let getScripturesCallback;
     let getScripturesFailure;
@@ -63,11 +66,17 @@ const Scriptures =(function()
     let nextChapter;
     let onHashChanged;
     let previousChapter;
+    let setupMarkers;
     let titleForBookChapter;
     let volumesGridContent;
 
 
     // PRIVATE METHODS
+    addMarker = function(placename, latitude, longitude)
+    {
+        console.log(placename, latitude, longitude);
+    };
+
     ajax = function(url, successCallback, failureCallback, skipJsonParse)
     {
         let request = new XMLHttpRequest();
@@ -202,6 +211,15 @@ const Scriptures =(function()
         return gridContent;
     };
 
+    clearMarkers = function()
+    {
+        gmMarkers.forEach(function (marker)
+        {
+            marker.setMap(null);
+        });
+        gmMarkers = [];
+    };
+
     encodedScripturesUrlParameters = function(bookId, chapter, verses, isJst)
     {
         if(bookId !== undefined && chapter !==undefined)
@@ -226,7 +244,7 @@ const Scriptures =(function()
     {
         document.getElementById(DIV_SCRIPTURES).innerHTML = chapterHtml;
 
-        // TODO: Setup markers
+        setupMarkers();
     }
 
     getScripturesFailure = function()
@@ -432,6 +450,33 @@ const Scriptures =(function()
                 }
             }
         }
+    };
+
+    setupMarkers = function()
+    {
+        if(gmMarkers.length > 0)
+        {
+            clearMarkers();
+        }
+
+        document.querySelectorAll("a[onclick^=\"showLocation(\"]").forEach(function (element) 
+        {
+            let matches = LAT_LON_PARSER.exec(element.getAttribute("onclick"));
+
+            if(matches) 
+            {
+                let placename = matches[INDEX_PLACENAME];
+                let latitude = matches[INDEX_LATITUDE];
+                let longitude = matches[INDEX_LONGITUDE];
+                let flag = matches[INDEX_FLAG];
+
+                if(flag !== "")
+                {
+                    placename += ` ${flag}`;
+                }
+                addMarker(placename, latitude, longitude);
+            }
+        });
     };
 
     titleForBookChapter = function (book, chapter)
