@@ -14,6 +14,8 @@
 // TODO: hover on teardrops display name next to it
 // click on link in book takes you to google maps location showlocation() method
 // next previous buttons
+// zoom to map section when new section is loaded
+// write README.MD
 
 
 const Scriptures =(function()
